@@ -36,10 +36,7 @@ A vidade Avalia va 1 – Sistema de Gerenciamento de Projetos
 7. Lista de Tarefas Concluídas com e sem Atrasos - imprime duas informações: Tarefas com atraso
 e depois tarefas sem atrasos
 8. Sair do Programa
-O sistema deve ser amigável, ou seja, fácil compreensão e manipulação. Considere
-como “Dono do Projeto” a professora
-O sistema deve ser construído usando os conceitos de Filas e Listas vistos durante as
-aulas, bem como os conceitos de bibliotecas e funções
+
 Parte Avançada
 Está parte consiste em aprimorar o sistema, tornando-o mais eficiente.
 Suponha agora que a estrutura tarefa tenha mais um campo:
