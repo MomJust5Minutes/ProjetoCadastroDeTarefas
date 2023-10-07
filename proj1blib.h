@@ -4,6 +4,11 @@
 #include <string.h>
 #include <math.h>
 
+typedef struct {
+    Fila *filas[3]; // TrÃªs filas para cada prioridade
+    int tamanhoFilas[3]; // Tamanho atual de cada fila
+} ListaPendencias;
+
 void printaDiv() {
     printf("\n");
     for (int i = 0; i < 50; i++) {
@@ -20,11 +25,10 @@ typedef struct {
 } Data;
 
 //Retorna true se a data comparada for mais antiga que a data base
-bool dataMenor (Data data_comparada, Data data_base) {
+bool dataMenor(Data data_comparada, Data data_base) {
     if (data_comparada.ano < data_base.ano) return true;
     else if (data_comparada.mes < data_base.mes) return true;
     else if (data_comparada.dia < data_base.dia) return true;
-
     return false;
 }
 
@@ -58,22 +62,24 @@ bool vaziaLista(Lista * lista) {
     return false;
 }
 
-//Cria um novo nó com uma dada tarefa e o insere na posição ordenado pela data de término
+//Cria um novo nÃ³ com uma dada tarefa e o insere na posiÃ§Ã£o ordenada pela data de tÃ©rmino
 void insereLista(Lista ** lista, Tarefa * tarefa) {
     No * novo_no = (No *) malloc(sizeof(No));
     novo_no->tarefa = tarefa;
     novo_no->proximo_no = NULL;
     Lista * no_atual = *lista;
 
-    //Insere no início
-    if (vaziaLista(no_atual) || dataMenor(tarefa->termino, no_atual->tarefa->termino)) {
+    //Insere no inÃ­cio
+    if (vaziaLista(no_atual) || (tarefa->prioridade < no_atual->tarefa->prioridade) ||
+       (tarefa->prioridade == no_atual->tarefa->prioridade && dataMenor(tarefa->termino, no_atual->tarefa->termino))) {
         novo_no->proximo_no = no_atual;
         (*lista) = novo_no;
     }
-
-    //Insere da posição 1 pra frente
+    //Insere da posiÃ§Ã£o 1 pra frente
     else {
-        while(no_atual->proximo_no != NULL && dataMenor(no_atual->tarefa->termino, tarefa->termino)) {
+        while(no_atual->proximo_no != NULL && (tarefa->prioridade > no_atual->proximo_no->tarefa->prioridade ||
+                                               (tarefa->prioridade == no_atual->proximo_no->tarefa->prioridade &&
+                                                dataMenor(tarefa->termino, no_atual->proximo_no->tarefa->termino)))) {
             no_atual = no_atual->proximo_no;
         }
 
@@ -95,7 +101,7 @@ void printaTarefa(Tarefa tarefa) {
     printaDiv();
 }
 
-//Printa todos os codigos da lista seguindo a ordem
+//Printa todos os cÃ³digos da lista seguindo a ordem
 void printaLista(Lista * lista) {
     if (!vaziaLista(lista)) {
         while (!vaziaLista(lista)) {
@@ -103,8 +109,7 @@ void printaLista(Lista * lista) {
             lista = lista->proximo_no;
         }
     }
-
-    else printf("\nEsta lista esta vazia.\n");
+    else printf("\nEsta lista estÃ¡ vazia.\n");
 }
 
 //*FILA
@@ -113,12 +118,11 @@ typedef struct {
     No * fim;
 } Fila;
 
-//Cria uma nova fila com o início e o fim nulos
+//Cria uma nova fila com o inÃ­cio e o fim nulos
 Fila * criaFila() {
     Fila * nova_fila = (Fila *) malloc(sizeof(Fila));
     nova_fila->fim = NULL;
     nova_fila->inicio = NULL;
-
     return nova_fila;
 }
 
@@ -128,7 +132,7 @@ bool vaziaFila(Fila * fila) {
     return false;
 }
 
-//Cria um novo nó com uma dada tarefa e o insere na fila
+//Cria um novo nÃ³ com uma dada tarefa e o insere na fila
 void insereFila(Fila * fila, Tarefa * tarefa) {
     No * novo_no = (No *) malloc(sizeof(No));
     novo_no->tarefa = tarefa;
@@ -152,25 +156,24 @@ void printaFila(Fila * fila) {
             inicio = inicio->proximo_no;
         }
     }
-
-    else printf("\nEsta fila está vazia.\n");
+    else printf("\nEsta fila estÃ¡ vazia.\n");
 }
 
-// Modifique a função verificaStatus para receber a lista de tarefas pendentes
+// Modifique a funÃ§Ã£o verificaStatus para receber a lista de tarefas pendentes
 void verificaStatus(Tarefa *tarefa, int hoje[], Lista **pendentes) {
     int contaDiasT = tarefa->termino.dia + (tarefa->termino.mes * 30) + (tarefa->termino.ano * 365);
     int contaDiasH = hoje[0] + hoje[1] * 30 + hoje[2] * 365;
 
     if (contaDiasH > contaDiasT) {
         tarefa->status = 1; // Atrasada
-        // Adicione a lógica para mover a tarefa para a lista de tarefas pendentes aqui
+        // Adicione a lÃ³gica para mover a tarefa para a lista de tarefas pendentes aqui
         insereLista(pendentes, tarefa);
     } else {
         tarefa->status = 0; // Em dia
     }
 }
 
-// Função para marcar uma tarefa como pendente e movê-la para a lista de tarefas pendentes
+// FunÃ§Ã£o para marcar uma tarefa como pendente e movÃª-la para a lista de tarefas pendentes
 void marcarTarefaComoPendente(int codigo, Fila *filas[], Lista **pendentes) {
     for (int i = 0; i < 3; i++) {
         No *no_atual = filas[i]->inicio;
@@ -178,20 +181,20 @@ void marcarTarefaComoPendente(int codigo, Fila *filas[], Lista **pendentes) {
 
         while (no_atual != NULL) {
             if (no_atual->tarefa->codigo == codigo) {
-                // Encontrou a tarefa com o código
+                // Encontrou a tarefa com o cÃ³digo
                 no_atual->tarefa->status = -1; // Define o status como pendente
-                // Adicione a lógica para mover a tarefa para a lista de tarefas pendentes aqui
+                // Adicione a lÃ³gica para mover a tarefa para a lista de tarefas pendentes aqui
                 insereLista(pendentes, no_atual->tarefa);
 
                 // Remova a tarefa da fila de tarefas
                 if (no_anterior == NULL) {
-                    // A tarefa a ser removida é a primeira da fila
+                    // A tarefa a ser removida Ã© a primeira da fila
                     filas[i]->inicio = no_atual->proximo_no;
                 } else {
-                    // A tarefa a ser removida não é a primeira da fila
+                    // A tarefa a ser removida nÃ£o Ã© a primeira da fila
                     no_anterior->proximo_no = no_atual->proximo_no;
                 }
-                free(no_atual); // Libere a memória do nó removido
+                free(no_atual); // Libere a memÃ³ria do nÃ³ removido
 
                 return;
             }
@@ -200,8 +203,8 @@ void marcarTarefaComoPendente(int codigo, Fila *filas[], Lista **pendentes) {
             no_atual = no_atual->proximo_no;
         }
     }
-    // Se chegou aqui, a tarefa não foi encontrada
-    printf("Tarefa com código %d não encontrada.\n", codigo);
+    // Se chegou aqui, a tarefa nÃ£o foi encontrada
+    printf("Tarefa com cÃ³digo %d nÃ£o encontrada.\n", codigo);
 }
 
 
@@ -264,13 +267,12 @@ void cadastraNovaTarefa(Fila * filas[], Lista ** pendentes, Tarefa * tarefa) {
     if (tarefa->status == -1) {
         insereLista(pendentes, tarefa);
     }
-
     else {
         insereFila(filas[tarefa->prioridade - 1], tarefa);
     }
 }
 
-//retorna a tarefa com o código passado
+//retorna a tarefa com o cÃ³digo passado
 Tarefa * getTarefa(int codigo, Lista * pendentes, Fila * filas[]) {
     while (pendentes != NULL) {
         if (pendentes->tarefa->codigo == codigo) return pendentes->tarefa;
@@ -288,7 +290,7 @@ Tarefa * getTarefa(int codigo, Lista * pendentes, Fila * filas[]) {
     return NULL; // Default
 }
 
-//Recebe o codigo de uma tarefa e altera as suas informacoes
+//Recebe o cÃ³digo de uma tarefa e altera as suas informaÃ§Ãµes
 void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
     Tarefa * tarefa = getTarefa(codigo, pendentes, filas);
 
@@ -355,18 +357,18 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                     no_anterior->proximo_no = no_atual->proximo_no;
                 }
 
-                // Atualiza a data de término para a data atual
+                // Atualiza a data de tÃ©rmino para a data atual
                 no_atual->tarefa->termino.dia = data_atual[0];
                 no_atual->tarefa->termino.mes = data_atual[1];
                 no_atual->tarefa->termino.ano = data_atual[2];
 
-                // Adiciona a tarefa à lista de tarefas concluídas
+                // Adiciona a tarefa Ã  lista de tarefas concluÃ­das
                 insereLista(concluidas, no_atual->tarefa);
 
-                // Libera a memória do nó
+                // Libera a memÃ³ria do nÃ³
                 free(no_atual);
 
-                printf("Tarefa concluída com sucesso!\n");
+                printf("Tarefa concluÃ­da com sucesso!\n");
                 return;
             }
 
@@ -388,18 +390,18 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                 no_anterior->proximo_no = no_atual->proximo_no;
             }
 
-            // Atualiza a data de término para a data atual
+            // Atualiza a data de tÃ©rmino para a data atual
             no_atual->tarefa->termino.dia = data_atual[0];
             no_atual->tarefa->termino.mes = data_atual[1];
             no_atual->tarefa->termino.ano = data_atual[2];
 
-            // Adiciona a tarefa à lista de tarefas concluídas
+            // Adiciona a tarefa Ã  lista de tarefas concluÃ­das
             insereLista(concluidas, no_atual->tarefa);
 
-            // Libera a memória do nó
+            // Libera a memÃ³ria do nÃ³
             free(no_atual);
 
-            printf("Tarefa concluída com sucesso!\n");
+            printf("Tarefa concluÃ­da com sucesso!\n");
             return;
         }
 
@@ -407,55 +409,17 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
         no_atual = no_atual->proximo_no;
     }
 
-    // Se não encontrou a tarefa, informa que não foi encontrada
-    printf("Tarefa não encontrada.\n");
+    // Se nÃ£o encontrou a tarefa, informa que nÃ£o foi encontrada
+    printf("Tarefa nÃ£o encontrada.\n");
 }
 
-// Função para listar as tarefas concluídas com atraso
+// FunÃ§Ã£o para listar as tarefas concluÃ­das com atraso
 void listarTarefasConcluidasComAtraso(Lista *concluidas) {
     Lista *no_atual = concluidas;
     while (no_atual != NULL) {
         if (no_atual->tarefa->status == 1) {
-            printaTarefa(*(no_atual->tarefa)); // Assumindo que você tenha uma função printaTarefa
+            printaTarefa(*(no_atual->tarefa));
         }
         no_atual = no_atual->proximo_no;
-    }
-}
-
-// Função para listar as tarefas concluídas sem atraso
-void listarTarefasConcluidasSemAtraso(Lista *concluidas) {
-    Lista *no_atual = concluidas;
-    while (no_atual != NULL) {
-        if (no_atual->tarefa->status == 0) {
-            printaTarefa(*(no_atual->tarefa)); // Assumindo que você tenha uma função printaTarefa
-        }
-        no_atual = no_atual->proximo_no;
-    }
-}
-
-void liberarLista(Lista * lista) {
-    while (lista != NULL) {
-        Lista * proximo = lista->proximo_no; // Salva o próximo nó antes de liberar o atual
-        free(lista->tarefa); // Libera a memória da tarefa dentro do nó
-        free(lista); // Libera a memória do nó atual
-        lista = proximo; // Move para o próximo nó
-    }
-}
-
-void liberarFila(Fila * fila) {
-    while (!vaziaFila(fila)) {
-        No * primeiro = fila->inicio; // Obtém o primeiro nó da fila
-        fila->inicio = fila->inicio->proximo_no; // Atualiza o início da fila
-        free(primeiro->tarefa); // Libera a memória da tarefa dentro do nó
-        free(primeiro); // Libera a memória do nó
-    }
-    free(fila); // Libera a memória da estrutura da fila
-}
-
-
-void liberarArrayDeFilas(Fila * vetorDeFilas[], int tamanho) {
-    for (int i = 0; i < tamanho; i++) {
-        liberarFila(vetorDeFilas[i]);
-        vetorDeFilas[i] = NULL; // Defina o ponteiro da fila como NULL após liberar
     }
 }
