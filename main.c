@@ -60,10 +60,10 @@ int main() {
                 break;
             case 6:
                 printf("\nTarefas Concluídas com Atraso:\n");
-                listarTarefasConcluidasComAtraso(concluidas);
+                listarTarefasConcluidas(concluidas, true);
 
                 printf("\nTarefas Concluídas sem Atraso:\n");
-                listarTarefasConcluidasSemAtraso(concluidas);
+                listarTarefasConcluidas(concluidas, false);
                 break;
             case 7:
                 printf("\nSaindo do programa...\n");
