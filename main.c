@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <time.h>
 #include "proj1blib.h"
+#include <locale.h>
 
 int main() {
+    setlocale(LC_ALL, "Portuguese");
     int codigo_atual = 1;
 
     time_t segundos;
@@ -28,7 +30,8 @@ int main() {
         printf("[4] Lista de Tarefas Pendentes\n");
         printf("[5] Lista de Tarefas Concluídas\n");
         printf("[6] Lista de Tarefas Concluidas com e sem Atrasos\n");
-        printf("[7] Sair do Programa\n");
+        printf("[7] Remover tarefa\n");
+        printf("[8] Sair do Programa\n");
         printf("> ");
         scanf("%d", &escolha);
 
@@ -66,6 +69,13 @@ int main() {
                 listarTarefasConcluidas(concluidas, false);
                 break;
             case 7:
+                printf("Digite o código da tarefa que deseja remover: ");
+                int codigo_remocao;
+                scanf("%d", &codigo_remocao);
+                deletaTarefa(codigo_remocao, &pendentes, filas);
+                printf("Tarefa com código %d removida com sucesso.\n", codigo_remocao);
+                break;
+            case 8:
                 printf("\nSaindo do programa...\n");
                 liberarLista(pendentes);
                 liberarArrayDeFilas(filas, 3);
