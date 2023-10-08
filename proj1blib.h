@@ -35,6 +35,7 @@ typedef struct{
     Data termino;
     int status;
     int prioridade;
+    bool concluida_com_atraso;
 } Tarefa;
 
 //*NO
@@ -164,9 +165,9 @@ int verificaStatusTarefa(Data termino, int hoje[]) {
     int contaDiasT = termino.dia + (termino.mes * 30) + (termino.ano * 365);
     int contaDiasH = hoje[0] + hoje[1] * 30 + hoje[2] * 365;
 
-    if (contaDiasH > contaDiasT) {
+    if (contaDiasT > contaDiasH) {
         return 1; // Tarefa atrasada
-    } else if (contaDiasH == contaDiasT) {
+    } else if (contaDiasH < contaDiasT) {
         return 0; // Tarefa em dia
     } else {
         return -1; // Tarefa pendente
@@ -295,10 +296,15 @@ Tarefa * getTarefa(int codigo, Lista * pendentes, Fila * filas[]) {
 void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
     Tarefa * tarefa = getTarefa(codigo, pendentes, filas);
 
+    time_t segundos;
+    time(&segundos);
+    struct tm *data_hora_atual = localtime(&segundos);
+    int hoje[3] = {data_hora_atual->tm_mday, data_hora_atual->tm_mon + 1, data_hora_atual->tm_year + 1900}; // Data atual (dia, mês, ano)
+
     printaDiv();
     printf("AREA DE EDICAO DE TAREFA\n\n");
 
-    printf("Para editar, digite:\n[0] Nome\n[1] Projeto;\n[2] Data de inicio;\n[3] Data de termino;\n[4] Status;\n[5] Prioridade;\n> ");
+    printf("Para editar, digite:\n[0] Nome\n[1] Projeto;\n[2] Data de inicio;\n[3] Data de termino;\n[4] Prioridade;\n> ");
     int escolha;
     fflush(stdin);
     scanf("%d", &escolha);
@@ -322,16 +328,12 @@ void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
             break;
         case 3:
             printf("Nova data de termino:");
-            printf("\nDia: "); fflush(stdin); scanf("%d", &tarefa->inicio.dia);
-            printf("Mes: "); fflush(stdin); scanf("%d", &tarefa->inicio.mes);
-            printf("Ano: "); fflush(stdin); scanf("%d", &tarefa->inicio.ano);
+            printf("\nDia: "); fflush(stdin); scanf("%d", &tarefa->termino.dia);
+            printf("Mes: "); fflush(stdin); scanf("%d", &tarefa->termino.mes);
+            printf("Ano: "); fflush(stdin); scanf("%d", &tarefa->termino.ano);
+            tarefa->status = verificaStatusTarefa(tarefa->termino, hoje);
             break;
         case 4:
-            printf("Novo status: ");
-            fflush(stdin);
-            scanf("%d", &tarefa->status);
-            break;
-        case 5:
             printf("Nova prioridade: ");
             fflush(stdin);
             scanf("%d", &tarefa->prioridade);
@@ -362,6 +364,12 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                 no_atual->tarefa->termino.dia = data_atual[0];
                 no_atual->tarefa->termino.mes = data_atual[1];
                 no_atual->tarefa->termino.ano = data_atual[2];
+
+                // Calcula se a tarefa foi concluída com atraso ou não
+                bool concluida_com_atraso = dataMenor(no_atual->tarefa->termino, no_atual->tarefa->inicio);
+
+                // Adiciona a informação de conclusão com atraso à tarefa
+                no_atual->tarefa->concluida_com_atraso = concluida_com_atraso;
 
                 // Adiciona a tarefa à lista de tarefas concluídas
                 insereLista(concluidas, no_atual->tarefa);
@@ -396,6 +404,12 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
             no_atual->tarefa->termino.mes = data_atual[1];
             no_atual->tarefa->termino.ano = data_atual[2];
 
+            // Calcula se a tarefa foi concluída com atraso ou não
+            bool concluida_com_atraso = dataMenor(no_atual->tarefa->termino, no_atual->tarefa->inicio);
+
+            // Adiciona a informação de conclusão com atraso à tarefa
+            no_atual->tarefa->concluida_com_atraso = concluida_com_atraso;
+
             // Adiciona a tarefa à lista de tarefas concluídas
             insereLista(concluidas, no_atual->tarefa);
 
@@ -414,27 +428,20 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
     printf("Tarefa não encontrada.\n");
 }
 
-// Função para listar as tarefas concluídas com atraso
-void listarTarefasConcluidasComAtraso(Lista *concluidas) {
-    Lista *no_atual = concluidas;
-    while (no_atual != NULL) {
-        if (no_atual->tarefa->status == 1) {
-            printaTarefa(*(no_atual->tarefa));
-        }
-        no_atual = no_atual->proximo_no;
-    }
-}
 
-// Função para listar as tarefas concluídas sem atraso
-void listarTarefasConcluidasSemAtraso(Lista *concluidas) {
+// Função para listar as tarefas concluídas com base no parâmetro 'com_atraso'
+void listarTarefasConcluidas(Lista *concluidas, bool com_atraso) {
     Lista *no_atual = concluidas;
+
     while (no_atual != NULL) {
-        if (no_atual->tarefa->status == 0) {
+        // Verifica se a tarefa foi concluída com atraso ou sem atraso
+        if (no_atual->tarefa->concluida_com_atraso == com_atraso) {
             printaTarefa(*(no_atual->tarefa)); // Assumindo que você tenha uma função printaTarefa
         }
         no_atual = no_atual->proximo_no;
     }
 }
+
 
 
 void liberarLista(Lista * lista) {
