@@ -4,9 +4,11 @@
 #include <string.h>
 #include <math.h>
 
-void printaDiv() {
+//para interface
+void printaDivisoria() {
+
     printf("\n");
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 45; i++) {
         printf("=");
     }
     printf("\n");
@@ -85,27 +87,29 @@ void insereLista(Lista ** lista, Tarefa * tarefa) {
 }
 
 //printa todos os detalhes da tarefa
-void printaTarefa(Tarefa tarefa) {
-    printaDiv();
+void imprimeTarefa(Tarefa tarefa) {
+    printaDivisoria();
     printf("TAREFA \"%s\":\n\n", tarefa.nome);
     printf("Projeto: \"%s\";\n", tarefa.projeto);
     printf("Data de Inicio: %02d/%02d/%04d;\n", tarefa.inicio.dia, tarefa.inicio.mes, tarefa.inicio.ano);
     printf("Data de Termino: %02d/%02d/%04d;\n", tarefa.termino.dia, tarefa.termino.mes, tarefa.termino.ano);
-    printf("Status: %d;\n", tarefa.status);
-    printf("Prioridade: %d;\n", tarefa.prioridade);
+    printf("Prioridade:");
+    if(tarefa.prioridade==1) printf("[1] Alta;\n");
+    else if(tarefa.prioridade==2) printf("[2] Media;\n");
+    else printf("[3] Baixa;\n");
     printf("Codigo: %d;", tarefa.codigo);
-    printaDiv();
+    printaDivisoria();
 }
 
 //Printa todos os códigos da lista seguindo a ordem
-void printaLista(Lista * lista) {
+void imprimeLista(Lista * lista) {
     if (!vaziaLista(lista)) {
         while (!vaziaLista(lista)) {
-            printaTarefa(*(lista->tarefa));
+            imprimeTarefa(*(lista->tarefa));
             lista = lista->proximo_no;
         }
     }
-    else printf("\nEsta lista está vazia.\n");
+    else printf("\nEsta lista esta vazia.\n");
 }
 
 //*FILA
@@ -149,15 +153,15 @@ void insereFila(Fila * fila, Tarefa * tarefa) {
     }
 }
 
-void printaFila(Fila * fila) {
+void printFila(Fila * fila) {
     No * inicio = fila->inicio;
     if (!vaziaFila(fila)) {
         while (inicio != NULL) {
-            printaTarefa(*(inicio->tarefa));
+            imprimeTarefa(*(inicio->tarefa));
             inicio = inicio->proximo_no;
         }
     }
-    else printf("\nEsta fila está vazia.\n");
+    else printf("\nEsta fila esta vazia.\n");
 }
 
 // Função para verificar o status da tarefa
@@ -206,7 +210,7 @@ void marcarTarefaComoPendente(int codigo, Fila *filas[], Lista **pendentes) {
         }
     }
     // Se chegou aqui, a tarefa não foi encontrada
-    printf("Tarefa com código %d não encontrada.\n", codigo);
+    printf("Tarefa com codigo %d NAO encontrada.\n", codigo);
 }
 
 
@@ -214,7 +218,7 @@ Tarefa * criaTarefa(int * codigo_atual, int hoje[]) {
 
     Tarefa * nova_tarefa = (Tarefa *) malloc(sizeof(Tarefa));
 
-    printaDiv();
+    printaDivisoria();
     printf("AREA DE CRIACAO DE TAREFA\n\n");
 
     //NOME
@@ -257,35 +261,20 @@ Tarefa * criaTarefa(int * codigo_atual, int hoje[]) {
     //CODIGO
     nova_tarefa->codigo = *codigo_atual;
     printf("\nO codigo da tarefa eh: %d", *codigo_atual);
-    printaDiv();
+    printaDivisoria();
 
     (*codigo_atual)++;
 
     return nova_tarefa;
 }
 
-// Recebe uma tarefa e insere em uma das filas ou na lista de pendentes
+//Recebe uma tarefa e insere em uma das filas ou na lista de pendentes
 void cadastraNovaTarefa(Fila * filas[], Lista ** pendentes, Tarefa * tarefa) {
-    No *novo_no = (No *)malloc(sizeof(No));
-    novo_no->tarefa = tarefa;
-    novo_no->proximo_no = NULL;
-
-    // Inserir em ordem de data estimada (mais perto da data estimada para mais longe)
-    if (vaziaLista(*pendentes) || dataMenor(tarefa->termino, (*pendentes)->tarefa->termino)) {
-        novo_no->proximo_no = *pendentes;
-        *pendentes = novo_no;
+    if (tarefa->status == -1) {
+        insereLista(pendentes, tarefa);
     }
     else {
-        No *anterior = NULL;
-        No *atual = *pendentes;
-
-        while (atual != NULL && !dataMenor(tarefa->termino, atual->tarefa->termino)) {
-            anterior = atual;
-            atual = atual->proximo_no;
-        }
-
-        novo_no->proximo_no = atual;
-        anterior->proximo_no = novo_no;
+        insereFila(filas[tarefa->prioridade - 1], tarefa);
     }
 }
 
@@ -316,7 +305,7 @@ void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
     struct tm *data_hora_atual = localtime(&segundos);
     int hoje[3] = {data_hora_atual->tm_mday, data_hora_atual->tm_mon + 1, data_hora_atual->tm_year + 1900}; // Data atual (dia, mês, ano)
 
-    printaDiv();
+    printaDivisoria();
     printf("AREA DE EDICAO DE TAREFA\n\n");
 
     printf("Para editar, digite:\n[0] Nome\n[1] Projeto;\n[2] Data de inicio;\n[3] Data de termino;\n[4] Prioridade;\n> ");
@@ -349,7 +338,7 @@ void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
             tarefa->status = verificaStatusTarefa(tarefa->termino, hoje);
             break;
         case 4:
-            printf("Nova prioridade: ");
+            printf("Nova prioridade da tarefa ([1] => Alta; [2] => Media; [3] => Baixa)\n>: ");
             fflush(stdin);
             scanf("%d", &tarefa->prioridade);
             break;
@@ -357,7 +346,7 @@ void editaTarefa(int codigo, Fila * filas[], Lista * pendentes) {
             printf("Escolha invalida");
     }
 
-    printaDiv();
+    printaDivisoria();
 }
 
 void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** concluidas, int data_atual[]) {
@@ -375,16 +364,16 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                     no_anterior->proximo_no = no_atual->proximo_no;
                 }
 
+                // Atualiza a data de término para a data atual
+                no_atual->tarefa->termino.dia = data_atual[0];
+                no_atual->tarefa->termino.mes = data_atual[1];
+                no_atual->tarefa->termino.ano = data_atual[2];
+
                 // Calcula se a tarefa foi concluída com atraso ou não
                 bool concluida_com_atraso = dataMenor(no_atual->tarefa->termino, no_atual->tarefa->inicio);
 
                 // Adiciona a informação de conclusão com atraso à tarefa
                 no_atual->tarefa->concluida_com_atraso = concluida_com_atraso;
-
-                // Atualiza a data de término para a data atual
-                no_atual->tarefa->termino.dia = data_atual[0];
-                no_atual->tarefa->termino.mes = data_atual[1];
-                no_atual->tarefa->termino.ano = data_atual[2];
 
                 // Adiciona a tarefa à lista de tarefas concluídas
                 insereLista(concluidas, no_atual->tarefa);
@@ -392,7 +381,7 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                 // Libera a memória do nó
                 free(no_atual);
 
-                printf("Tarefa concluída com sucesso!\n");
+                printf("Tarefa concluida com sucesso!\n");
                 return;
             }
 
@@ -431,7 +420,7 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
             // Libera a memória do nó
             free(no_atual);
 
-            printf("Tarefa concluída com sucesso!\n");
+            printf("Tarefa concluida com sucesso!\n");
             return;
         }
 
@@ -440,7 +429,7 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
     }
 
     // Se não encontrou a tarefa, informa que não foi encontrada
-    printf("Tarefa não encontrada.\n");
+    printf("Tarefa nao encontrada.\n");
 }
 
 
@@ -451,13 +440,13 @@ void listarTarefasConcluidas(Lista *concluidas, bool com_atraso) {
     while (no_atual != NULL) {
         // Verifica se a tarefa foi concluída com atraso ou sem atraso
         if (no_atual->tarefa->concluida_com_atraso == com_atraso) {
-            printaTarefa(*(no_atual->tarefa)); // Assumindo que você tenha uma função printaTarefa
+            imprimeTarefa(*(no_atual->tarefa)); // Assumindo que você tenha uma função printaTarefa
         }
         no_atual = no_atual->proximo_no;
     }
 }
 
-No * desenfila(Fila * fila) {
+No * retiraFila(Fila * fila) {
     if (!vaziaFila(fila)) {
         No * no_retirado = fila->inicio;
         fila->inicio = fila->inicio->proximo_no;
@@ -466,6 +455,7 @@ No * desenfila(Fila * fila) {
 
     return NULL;
 }
+
 
 No * retiraTarefa(int codigo, Lista ** pendentes, Fila * filas[]) {
     Tarefa * tarefa = getTarefa(codigo, *pendentes, filas);
@@ -484,6 +474,7 @@ No * retiraTarefa(int codigo, Lista ** pendentes, Fila * filas[]) {
 
             while(pendentes_aux->proximo_no->tarefa != tarefa && pendentes_aux->proximo_no != NULL) {
                 pendentes_aux = pendentes_aux->proximo_no;
+
             }
 
             no_excluido = pendentes_aux->proximo_no;
@@ -504,7 +495,7 @@ No * retiraTarefa(int codigo, Lista ** pendentes, Fila * filas[]) {
 
             bool achou_tarefa = false;
             while (!achou_tarefa) {
-                no_aux = desenfila(fila);
+                no_aux = retiraFila(fila);
                 if (no_aux->tarefa->codigo == codigo) {
                     no_excluido = no_aux;
                     achou_tarefa = true;
