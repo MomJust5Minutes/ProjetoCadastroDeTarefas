@@ -23,7 +23,7 @@ int main() {
 
     int escolha;
     while (1) {
-        printf("\nSISTEMA DE GERENCIAMENTO DE TAREFAS\n");
+        printf("\n===SISTEMA DE GERENCIAMENTO DE TAREFAS===\n");
         printf("[1] Adicionar nova Tarefa\n");
         printf("[2] Modificar uma Tarefa\n");
         printf("[3] Concluir Tarefa\n");
@@ -31,8 +31,8 @@ int main() {
         printf("[5] Lista de Tarefas Concluídas\n");
         printf("[6] Lista de Tarefas Concluidas com e sem Atrasos\n");
         printf("[7] Remover tarefa\n");
-        printf("[8] Sair do Programa\n");
-        printf("> ");
+        printf("[8] Sair do Programa\n\n");
+        printf(">> ");
         scanf("%d", &escolha);
 
         switch (escolha) {
@@ -55,11 +55,11 @@ int main() {
                 break;
             case 4:
                 printf("\nLista de Tarefas Pendentes:\n");
-                printaLista(pendentes);
+                imprimeLista(pendentes);
                 break;
             case 5:
                 printf("\nLista de Tarefas Concluidas:\n");
-                printaLista(concluidas);
+                imprimeLista(concluidas);
                 break;
             case 6:
                 printf("\nTarefas Concluídas com Atraso:\n");
@@ -69,11 +69,11 @@ int main() {
                 listarTarefasConcluidas(concluidas, false);
                 break;
             case 7:
-                printf("Digite o código da tarefa que deseja remover: ");
+                printf("Digite o codigo da tarefa que deseja remover: ");
                 int codigo_remocao;
                 scanf("%d", &codigo_remocao);
                 deletaTarefa(codigo_remocao, &pendentes, filas);
-                printf("Tarefa com código %d removida com sucesso.\n", codigo_remocao);
+                printf("Tarefa com codigo %d removida com sucesso.\n", codigo_remocao);
                 break;
             case 8:
                 printf("\nSaindo do programa...\n");
@@ -81,7 +81,7 @@ int main() {
                 liberarArrayDeFilas(filas, 3);
                 return 0;
             default:
-                printf("Opção inválida. Tente novamente.\n");
+                printf("Opção invalida. Tente novamente.\n");
         }
     }
 
