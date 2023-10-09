@@ -264,13 +264,28 @@ Tarefa * criaTarefa(int * codigo_atual, int hoje[]) {
     return nova_tarefa;
 }
 
-//Recebe uma tarefa e insere em uma das filas ou na lista de pendentes
+// Recebe uma tarefa e insere em uma das filas ou na lista de pendentes
 void cadastraNovaTarefa(Fila * filas[], Lista ** pendentes, Tarefa * tarefa) {
-    if (tarefa->status == -1) {
-        insereLista(pendentes, tarefa);
+    No *novo_no = (No *)malloc(sizeof(No));
+    novo_no->tarefa = tarefa;
+    novo_no->proximo_no = NULL;
+
+    // Inserir em ordem de data estimada (mais perto da data estimada para mais longe)
+    if (vaziaLista(*pendentes) || dataMenor(tarefa->termino, (*pendentes)->tarefa->termino)) {
+        novo_no->proximo_no = *pendentes;
+        *pendentes = novo_no;
     }
     else {
-        insereFila(filas[tarefa->prioridade - 1], tarefa);
+        No *anterior = NULL;
+        No *atual = *pendentes;
+
+        while (atual != NULL && !dataMenor(tarefa->termino, atual->tarefa->termino)) {
+            anterior = atual;
+            atual = atual->proximo_no;
+        }
+
+        novo_no->proximo_no = atual;
+        anterior->proximo_no = novo_no;
     }
 }
 
@@ -360,16 +375,16 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                     no_anterior->proximo_no = no_atual->proximo_no;
                 }
 
-                // Atualiza a data de término para a data atual
-                no_atual->tarefa->termino.dia = data_atual[0];
-                no_atual->tarefa->termino.mes = data_atual[1];
-                no_atual->tarefa->termino.ano = data_atual[2];
-
                 // Calcula se a tarefa foi concluída com atraso ou não
                 bool concluida_com_atraso = dataMenor(no_atual->tarefa->termino, no_atual->tarefa->inicio);
 
                 // Adiciona a informação de conclusão com atraso à tarefa
                 no_atual->tarefa->concluida_com_atraso = concluida_com_atraso;
+
+                // Atualiza a data de término para a data atual
+                no_atual->tarefa->termino.dia = data_atual[0];
+                no_atual->tarefa->termino.mes = data_atual[1];
+                no_atual->tarefa->termino.ano = data_atual[2];
 
                 // Adiciona a tarefa à lista de tarefas concluídas
                 insereLista(concluidas, no_atual->tarefa);
