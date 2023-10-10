@@ -42,7 +42,7 @@ int main() {
                 break;
             }
             case 2:
-                printf("Digite o código da tarefa que deseja editar: ");
+                printf("Digite o codigo da tarefa que deseja editar: ");
                 int codigo_edicao;
                 scanf("%d", &codigo_edicao);
                 editaTarefa(codigo_edicao, filas, pendentes);
@@ -62,10 +62,10 @@ int main() {
                 imprimeLista(concluidas);
                 break;
             case 6:
-                printf("\nTarefas Concluídas com Atraso:\n");
+                printf("\nTarefas Concluidas com Atraso:\n");
                 listarTarefasConcluidas(concluidas, true);
 
-                printf("\nTarefas Concluídas sem Atraso:\n");
+                printf("\nTarefas Concluidas sem Atraso:\n");
                 listarTarefasConcluidas(concluidas, false);
                 break;
             case 7:
