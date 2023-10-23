@@ -364,17 +364,19 @@ void concluirTarefa(int codigo, Fila * filas[], Lista ** pendentes, Lista ** con
                     no_anterior->proximo_no = no_atual->proximo_no;
                 }
 
-                // Atualiza a data de término para a data atual
-                no_atual->tarefa->termino.dia = data_atual[0];
-                no_atual->tarefa->termino.mes = data_atual[1];
-                no_atual->tarefa->termino.ano = data_atual[2];
-
                 // Calcula se a tarefa foi concluída com atraso ou não
                 bool concluida_com_atraso = dataMenor(no_atual->tarefa->termino, no_atual->tarefa->inicio);
 
                 // Adiciona a informação de conclusão com atraso à tarefa
                 no_atual->tarefa->concluida_com_atraso = concluida_com_atraso;
 
+                
+                // Atualiza a data de término para a data atual
+                no_atual->tarefa->termino.dia = data_atual[0];
+                no_atual->tarefa->termino.mes = data_atual[1];
+                no_atual->tarefa->termino.ano = data_atual[2];
+
+                
                 // Adiciona a tarefa à lista de tarefas concluídas
                 insereLista(concluidas, no_atual->tarefa);
 
